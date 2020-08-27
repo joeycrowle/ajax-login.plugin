@@ -1,0 +1,16 @@
+#ajx-lgn {
+    display: -webkit-box;
+    display: flex;
+    -webkit-box-pack: center;
+    justify-content: center;
+    width: 100%;
+    padding: 30px;
+  }
+
+#ajx-lgn form {
+    width: 300px;
+}
+
+#ajx-lgn input {
+    margin-bottom: 20px;
+}
