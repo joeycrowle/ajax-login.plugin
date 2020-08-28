@@ -1,16 +1,41 @@
-#ajx-lgn {
+.ajax-login-form {
+    width: 100%;
     display: -webkit-box;
     display: flex;
     -webkit-box-pack: center;
-    justify-content: center;
-    width: 100%;
-    padding: 30px;
+            justify-content: center;
+    background: white;
+    border-radius: 30px;
+    box-shadow: 3px 11px 20px 0px rgba(0,0,0,.13);
   }
-
-#ajx-lgn form {
-    width: 300px;
-}
-
-#ajx-lgn input {
+  .ajax-login-form ul {
+    display: -webkit-box;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+            flex-direction: column;
+    width: 100%;
+    max-width: 500px;
+    list-style: none;
+    padding: 60px;
+    margin: 0;
+  }
+  .ajax-login-form ul li {
+    width: 100%;
+    margin-left: 0;
+  }
+  .ajax-login-form ul li:not(:last-child) {
     margin-bottom: 20px;
-}
+  }
+  .ajax-login-form ul li label {
+    display: block;
+    margin-bottom: 8px;
+  }
+  .ajax-login-form ul li input {
+    box-sizing: border-box !important;
+    padding: 10px 20px;
+  }
+  .ajax-login-form ul li input[type="text"], .ajax-login-form ul li input[type="password"] {
+    width: 100%;
+    color: black;
+  }

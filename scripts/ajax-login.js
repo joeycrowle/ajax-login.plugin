@@ -27,7 +27,6 @@ jQuery(document).ready(function($) {
                 $('form#login p.status').text(data.message);
                 if (data.loggedin == true){
                     document.location.href = ajax_login_object.redirecturl;
-                    //document.location.reload();
                 }
             }
         });

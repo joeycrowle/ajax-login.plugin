@@ -2,8 +2,9 @@
 /**
  * 
  * Plugin Name: Ajax Login
- * Description: Adds front-end AJAX login functionality "[ajax-login]"
- * 
+ * Description: Adds front-end AJAX login functionality [ajax-login] [ajax-logout]
+ * Author: <a href="https://line49.ca">Line49</a>
+ * Version: 1.0
  */
 
 function ajax_login_init(){
@@ -14,7 +15,6 @@ function ajax_login_init(){
     }
 
     function ajax_login(){
-
         // First check the nonce, if it fails the function will break
         check_ajax_referer( 'ajax-login-nonce', 'security' );
     
@@ -24,7 +24,7 @@ function ajax_login_init(){
         $info['user_password'] = $_POST['password'];
         $info['remember'] = true;
     
-        $user_signon = wp_signon( $info, false );
+        $user_signon = wp_signon($info, is_ssl() ? true : false);
         if ( is_wp_error($user_signon) ){
             echo json_encode(array('loggedin'=>false, 'message'=>__('Wrong username or password.')));
         } else {
@@ -61,41 +61,46 @@ function ajax_login_init(){
 add_action('init', 'ajax_login_init');
 
 function register_ajax_login_settings() {
-    
-
     //Register Plugin Settings
     register_setting('ajax_login_settings', 'ajax_login_redirect_url');
     register_setting('ajax_login_settings', 'ajax_login_load_css');
 }
-
 add_action('admin_init', 'register_ajax_login_settings');
 
 
  //SHORTCODE [ajax-login]
 function ajax_form_shortcode(){
     if(!is_user_logged_in()) {
-        return '<div id="ajx-lgn">
-        <form id="login" action="login" method="post">
-        
-        <label for="username">Username</label>
-        <input id="username" type="text" name="username">
-        <label for="password">Password</label>
-        <input id="password" type="password" name="password">
-        <input class="submit_button" type="submit" value="Login" name="submit">
-        <p class="status"></p>' .
+        return '<form id="login" class="ajax-login-form" action="login" method="post">
+        <ul>
+            <li>
+                <label for="username">Username</label>
+                <input id="username" type="text" name="username">
+            </li>
+            <li>
+                <label for="password">Password</label>
+                <input id="password" type="password" name="password">
+            </li>
+            <li>
+                <input class="submit_button" type="submit" value="Login" name="submit">
+            </li>
+            <li>
+                <p class="status"></p>
+            </li>
+        </ul>' .
         wp_nonce_field( 'ajax-login-nonce', 'security' ) .
-        '</form>
-        </div>
-        ';
-    }
-    else {
-        return '<div id="ajx-lgn">
-        <a class="logout_button" href='. wp_logout_url( home_url() ) .'>Logout</a>
-        </div>';
+        '</form>';
     }
 }
 add_shortcode('ajax-login', 'ajax_form_shortcode');
 
+//LOGOUT BUTTON SHORTCODE [ajax-logout]
+function logout_shortcode() {
+    if(is_user_logged_in()) {
+        return '<a class="logout_button" href='. wp_logout_url( home_url() ) .'>Logout</a>';
+    }
+}
+add_shortcode('ajax-logout', 'logout_shortcode');
 
 //SETTINGS SUBMENU
 function ajax_login_register_settings() {
