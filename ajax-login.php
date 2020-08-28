@@ -35,7 +35,7 @@ function ajax_login_init(){
     }
 
     if(!is_user_logged_in()) {
-        wp_register_script('ajax-login-script', plugins_url() . '/ajax-login-l49/scripts/ajax-login.js', array('jquery') ); 
+        wp_register_script('ajax-login-script', plugins_url() . '/ajax-login.plugin/scripts/ajax-login.js', array('jquery') ); 
         wp_enqueue_script('ajax-login-script');
 
         wp_localize_script( 'ajax-login-script', 'ajax_login_object', array( 
@@ -49,7 +49,7 @@ function ajax_login_init(){
     }
 
     function ajax_login_enqueue_style() {
-        wp_register_style( 'ajax-login-css', plugins_url() . '/ajax-login-l49/styles/ajax-login.css' );
+        wp_register_style( 'ajax-login-css', plugins_url() . '/ajax-login.plugin/styles/ajax-login.css' );
         wp_enqueue_style( 'ajax-login-css' );
     }
 
