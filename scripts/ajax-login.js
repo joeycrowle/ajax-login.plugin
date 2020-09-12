@@ -1,5 +1,35 @@
 jQuery(document).ready(function($) {
 
+
+    function setCookie(name,value,hours) {
+        var expires = "";
+        if (hours) {
+            var date = new Date();
+            date.setTime(date.getTime() + (hours*60*60*1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+    }
+    function getCookie(name) {
+        var nameEQ = name + "=";
+        var ca = document.cookie.split(';');
+        for(var i=0;i < ca.length;i++) {
+            var c = ca[i];
+            while (c.charAt(0)==' ') c = c.substring(1,c.length);
+            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+        }
+        return null;
+    }
+    function eraseCookie(name) {   
+        document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    }
+
+
+        console.log(document.cookie);
+
+
+    //eraseCookie('ajx-lg');
+
     // Show the login dialog box on click
     $('a#show_login').on('click', function(e){
         $('body').prepend('<div class="login_overlay"></div>');
@@ -25,7 +55,9 @@ jQuery(document).ready(function($) {
                 'security': $('form#login #security').val() },
             success: function(data){
                 $('form#login p.status').text(data.message);
+                //console.log(data.info.data, data.info.caps);
                 if (data.loggedin == true){
+                    setCookie('ajx_lg', data.info.roles, 0);
                     document.location.href = ajax_login_object.redirecturl;
                 }
             }

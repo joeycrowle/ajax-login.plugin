@@ -28,14 +28,19 @@ function ajax_login_init(){
         if ( is_wp_error($user_signon) ){
             echo json_encode(array('loggedin'=>false, 'message'=>__('Wrong username or password.')));
         } else {
-            echo json_encode(array('loggedin'=>true, 'message'=>__('Login successful, redirecting...')));
+            echo json_encode(array('info'=>$user_signon, 'loggedin'=>true, 'message'=>__('Login successful, redirecting...')));
         }
     
         die();
     }
 
-    if(!is_user_logged_in()) {
-        wp_register_script('ajax-login-script', plugins_url() . '/ajax-login.plugin/scripts/ajax-login.js', array('jquery') ); 
+    function ajax_logged_out() {
+        setcookie("ajx_lg", "", time() - 3600);
+    }
+    add_action('wp_logout', 'ajax_logged_out');
+
+    if(true/*!is_user_logged_in()*/) {
+        wp_register_script('ajax-login-script', plugins_url() . '/ajax-login-l49/scripts/ajax-login.js', array('jquery') ); 
         wp_enqueue_script('ajax-login-script');
 
         wp_localize_script( 'ajax-login-script', 'ajax_login_object', array( 
@@ -49,7 +54,7 @@ function ajax_login_init(){
     }
 
     function ajax_login_enqueue_style() {
-        wp_register_style( 'ajax-login-css', plugins_url() . '/ajax-login.plugin/styles/ajax-login.css' );
+        wp_register_style( 'ajax-login-css', plugins_url() . '/ajax-login-l49/styles/ajax-login.css' );
         wp_enqueue_style( 'ajax-login-css' );
     }
 
