@@ -7,6 +7,31 @@
  * Version: 1.0
  */
 
+//page load function
+function ajx_page_load() {
+    //Check login cookie
+    $hash = md5(get_site_url());
+    $loggedin = isset($_COOKIE['wordpress_logged_in_'.$hash]) ? true : false;
+    $pageid = $_POST['pageid'];
+
+    if($loggedin) {
+        echo json_encode(array(
+            'content' => get_post($pageid)->post_content,
+            'user' => wp_get_current_user()
+        ));
+    }else {
+        echo json_encode(array(
+            'content' => 'not logged in',
+            'user' => null,
+        ));
+    }
+
+    die();
+}
+add_action('wp_ajax_ajaxpageload', 'ajx_page_load');
+add_action('wp_ajax_nopriv_ajaxpageload', 'ajx_page_load');
+
+
 function ajax_login_init(){
 
     if(!get_option('ajax_login_load_css')) {
@@ -34,12 +59,11 @@ function ajax_login_init(){
         die();
     }
 
-    function ajax_logged_out() {
-        setcookie("ajx_lg", "", time() - 3600);
-    }
-    add_action('wp_logout', 'ajax_logged_out');
 
-    if(true/*!is_user_logged_in()*/) {
+        setcookie('ajx_lg', '', time() - 1000);
+  
+
+    if(!is_user_logged_in()) {
         wp_register_script('ajax-login-script', plugins_url() . '/ajax-login-l49/scripts/ajax-login.js', array('jquery') ); 
         wp_enqueue_script('ajax-login-script');
 
@@ -52,18 +76,37 @@ function ajax_login_init(){
         // Enable the user with no privileges to run ajax_login() in AJAX
         add_action( 'wp_ajax_nopriv_ajaxlogin', 'ajax_login' );
     }
+}
+add_action('init', 'ajax_login_init');
 
-    function ajax_login_enqueue_style() {
+
+
+
+function enqueue_ajx_assets() {
+    
+    $page = get_queried_object();
+    $id = $page->ID;
+    $template_slug = get_page_template_slug($id);
+
+    //load default style if option is selected
+    if( get_option('ajax_login_load_css') ) {
         wp_register_style( 'ajax-login-css', plugins_url() . '/ajax-login-l49/styles/ajax-login.css' );
         wp_enqueue_style( 'ajax-login-css' );
     }
 
-    if(get_option('ajax_login_load_css')) {
-        add_action( 'wp_enqueue_scripts', 'ajax_login_enqueue_style' ); 
+    //check if template slug contains 'ajx'
+    if( strpos($template_slug, 'ajx') !== false ) {
+        wp_register_script('ajax-page-script', plugins_url() . '/ajax-login-l49/scripts/ajax-page.js', array('jquery'));
+        wp_enqueue_script('ajax-page-script');
+        wp_localize_script('ajax-page-script', 'ajax_page_object', array(
+            'pageid' => json_encode(get_queried_object()->ID),
+            'ajaxurl' => admin_url( 'admin-ajax.php' ),
+            'slug' => $template_slug
+        ));
     }
-
 }
-add_action('init', 'ajax_login_init');
+add_action( 'wp_enqueue_scripts', 'enqueue_ajx_assets' ); 
+
 
 function register_ajax_login_settings() {
     //Register Plugin Settings

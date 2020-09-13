@@ -25,11 +25,6 @@ jQuery(document).ready(function($) {
     }
 
 
-        console.log(document.cookie);
-
-
-    //eraseCookie('ajx-lg');
-
     // Show the login dialog box on click
     $('a#show_login').on('click', function(e){
         $('body').prepend('<div class="login_overlay"></div>');
