@@ -8,9 +8,11 @@ jQuery(document).ready(function($) {
                 'pageid': ajax_page_object.pageid
             },
             success: function(data){
-                console.log(ajax_page_object);
-                console.log(data);
                 $('.ajx-content').html(data.content);
+                //initialize stuff here
+            },
+            error: function(xhr, status, err) {
+                $('.ajx-content').html(status);
             }
         });
 });
