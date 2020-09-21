@@ -20,7 +20,13 @@ function ajax_login_init(){
         add_option('ajax_login_logout_url', home_url());
         add_option('ajax_login_use_redirect', false);
         add_option('ajax_login_use_logout_redirect', false);
-        add_option('ajax_login_refresh_after_login', true);
+        add_option('ajax_login_show_messages', false);
+        add_option('ajax_login_loading_message', 'Loading..');
+        add_option('ajax_login_page_loading_message', 'Page Loading..');
+        add_option('ajax_login_redirecting_message', 'Redirecting..');
+        add_option('ajax_login_page_load_error_message', 'Error Loading Page');
+        add_option('ajax_login_page_load_message', 'Loaded');
+        add_option('ajax_login_validation_error_message', 'Incorrect Username or Password');
     }
 }
 add_action('init', 'ajax_login_init');
@@ -50,9 +56,15 @@ function enqueue_ajx_assets() {
             'ajaxurl' => admin_url( 'admin-ajax.php' ),
             'redirect' => get_option('ajax_login_use_redirect'),
             'redirecturl' => get_option('ajax_login_redirect_url'),
-            'loadingmessage' => __('Sending user info, please wait...'),
+            'form_loading_message' => __(get_option('ajax_login_loading_message')),
+            'page_loading_message' => __(get_option('ajax_login_page_loading_message')),
+            'page_loaded_message' => __(get_option('ajax_login_page_load_message')),
+            'page_load_error_message' => __(get_option('ajax_login_page_load_error_message')),
+            'validation_error_message' => __(get_option('ajax_login_validation_error_message')),
+            'redirect_message' => __(get_option('ajax_login_redirecting_message')),
             'pageid' => get_the_ID(),
-            'loggedin' => is_user_logged_in()
+            'loggedin' => is_user_logged_in(),
+            'showmessages' => get_option('ajax_login_show_messages')
         ));  
     }
 }
@@ -126,6 +138,14 @@ add_action('wp_ajax_ajaxgetpage', 'ajax_get_page');
 ////////////////////////////////////////////
 //SHORTCODES////////////////////////////////
 ////////////////////////////////////////////
+function statusField() {
+    if(get_option('ajax_login_show_messages')) { 
+        return '<li>
+        <p class="status"></p>
+    </li>';
+    }
+    
+}
 
  //[ajax-login]
 function ajax_form_shortcode(){
@@ -133,20 +153,16 @@ function ajax_form_shortcode(){
         return '<form id="login" class="ajax-login-form" action="login" method="post">
         <ul>
             <li>
-                <label for="username">Username</label>
-                <input id="username" type="text" name="username">
+                <input id="username" type="text" placeholder="Username" name="username">
             </li>
             <li>
-                <label for="password">Password</label>
-                <input id="password" type="password" name="password">
+                <input id="password" type="password" placeholder="Password" name="password">
             </li>
             <li>
                 <input class="submit_button" type="submit" value="Login" name="submit">
-            </li>
-            <li>
-                <p class="status"></p>
-            </li>
-        </ul>' .
+            </li>' .
+            statusField() .
+         '</ul>' .
         wp_nonce_field( 'ajax-login-nonce', 'security' ) .
         '</form>';
     }
@@ -176,7 +192,13 @@ function ajax_login_register_settings() {
     register_setting( 'ajax_login_settings', 'ajax_login_logout_url' );
     register_setting( 'ajax_login_settings', 'ajax_login_use_redirect' );
     register_setting( 'ajax_login_settings', 'ajax_login_use_logout_redirect' );
-    register_setting( 'ajax_login_settings', 'ajax_login_refresh_after_login' );
+    register_setting( 'ajax_login_settings', 'ajax_login_show_messages' );
+    register_setting( 'ajax_login_settings', 'ajax_login_loading_message' );
+    register_setting( 'ajax_login_settings', 'ajax_login_page_loading_message' );
+    register_setting( 'ajax_login_settings', 'ajax_login_redirecting_message' );
+    register_setting( 'ajax_login_settings', 'ajax_login_page_load_error_message' );
+    register_setting( 'ajax_login_settings', 'ajax_login_page_load_message' );
+    register_setting( 'ajax_login_settings', 'ajax_login_validation_error_message' );
 }
 
 function ajax_login_menu() {
@@ -211,16 +233,15 @@ add_action('admin_init', 'register_ajax_login_settings');
                 <td><input type="checkbox" name="ajax_login_load_css" value="1" <?php checked(1, get_option('ajax_login_load_css'), true); ?> /></td>
             </tr>
             <tr valign="top">
-                <th scope="row">Refresh Page After Login</th>
-                <td><input type="checkbox" name="ajax_login_refresh_after_login" value="1" <?php checked(1, get_option('ajax_login_refresh_after_login'), true); ?> /></td>            </tr>  
-            <tr valign="top">
             <tr valign="top">
                 <th scope="row">Redirect After Login</th>
-                <td><input type="checkbox" name="ajax_login_use_redirect" value="1" <?php checked(1, get_option('ajax_login_use_redirect'), true); ?> /></td>            </tr>  
+                <td><input type="checkbox" name="ajax_login_use_redirect" value="1" <?php checked(1, get_option('ajax_login_use_redirect'), true); ?> /></td>
+            </tr>  
             <tr valign="top">
             <tr valign="top">
                 <th scope="row">Redirect After Logout</th>
-                <td><input type="checkbox" name="ajax_login_use_logout_redirect" value="1" <?php checked(1, get_option('ajax_login_use_logout_redirect'), true); ?> /></td>            </tr>  
+                <td><input type="checkbox" name="ajax_login_use_logout_redirect" value="1" <?php checked(1, get_option('ajax_login_use_logout_redirect'), true); ?> /></td>            
+            </tr>  
             <tr valign="top">
                 <th scope="row">Login URL</th>
                 <td><input type="text" name="ajax_login_redirect_url" value="<?php echo esc_attr( get_option('ajax_login_redirect_url') ); ?>" /></td>
@@ -228,6 +249,36 @@ add_action('admin_init', 'register_ajax_login_settings');
             <tr valign="top">
                 <th scope="row">Logout URL</th>
                 <td><input type="text" name="ajax_login_logout_url" value="<?php echo esc_attr( get_option('ajax_login_logout_url') ); ?>" /></td>
+            </tr>    
+
+            <tr valign="top">
+                <th scope="row">Show Messages</th>
+                <td><input type="checkbox" name="ajax_login_show_messages" value="1" <?php checked(1, get_option('ajax_login_show_messages'), true); ?> /></td>            
+            </tr> 
+
+            <tr valign="top">
+                <th scope="row">Loading Message</th>
+                <td><input type="text" name="ajax_login_loading_message" value="<?php echo esc_attr( get_option('ajax_login_loading_message') ); ?>" /></td>
+            </tr>    
+            <tr valign="top">
+                <th scope="row">Page Loading Message</th>
+                <td><input type="text" name="ajax_login_page_loading_message" value="<?php echo esc_attr( get_option('ajax_login_page_loading_message') ); ?>" /></td>
+            </tr>    
+            <tr valign="top">
+                <th scope="row">Redirecting Message</th>
+                <td><input type="text" name="ajax_login_redirecting_message" value="<?php echo esc_attr( get_option('ajax_login_redirecting_message') ); ?>" /></td>
+            </tr>    
+            <tr valign="top">
+                <th scope="row">Page Load Error Message</th>
+                <td><input type="text" name="ajax_login_page_load_error_message" value="<?php echo esc_attr( get_option('ajax_login_page_load_error_message') ); ?>" /></td>
+            </tr>    
+            <tr valign="top">
+                <th scope="row">Page Load Message</th>
+                <td><input type="text" name="ajax_login_page_load_message" value="<?php echo esc_attr( get_option('ajax_login_page_load_message') ); ?>" /></td>
+            </tr>    
+            <tr valign="top">
+                <th scope="row">Validation Error Message</th>
+                <td><input type="text" name="ajax_login_validation_error_message" value="<?php echo esc_attr( get_option('ajax_login_validation_error_message') ); ?>" /></td>
             </tr>        
         </table>
     <?php submit_button(); ?>

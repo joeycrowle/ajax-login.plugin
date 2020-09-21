@@ -1,17 +1,16 @@
 jQuery(document).ready(function($) {
-    //console.log(ajax_login_object);
+    console.log(ajax_login_object);
 
-    window.addEventListener('ajx_page_load_success', function (e) {
-        $('form#login').css('display', 'none');
-        console.log(e);
-    });
+
+    // window.addEventListener('ajx_validation_error', function (e) {
+    //     console.log(e);
+    // });
 
     if(ajax_login_object.loggedin) {
         getPage();
     } else {
         $('form#login').on('submit', function(e){
-            $('form#login p.status').show().text(ajax_login_object.loadingmessage);
-            outputStatus('loading');
+            outputStatus(ajax_login_object.form_loading_message);
             window.dispatchEvent( new Event('ajx_form_loading') );
 
             $.ajax({
@@ -28,14 +27,18 @@ jQuery(document).ready(function($) {
                 success: function(data){
                     if (data.loggedin == true){    
                         if(ajax_login_object.redirect) {
+                            outputStatus(ajax_login_object.redirect_message);
                             window.dispatchEvent( new Event('ajx_redirecting') );
                             document.location.href = ajax_login_object.redirecturl;
                         }
                         else {
-                            outputStatus('Page load start');
+                            outputStatus(ajax_login_object.page_loading_message);
                             window.dispatchEvent( new Event('ajx_page_load_start') );
                             getPage();
                         }
+                    } else {
+                        outputStatus(ajax_login_object.validation_error_message);
+                        window.dispatchEvent( new Event('ajx_validation_error') );
                     }
                 }
             });
@@ -54,23 +57,25 @@ jQuery(document).ready(function($) {
                 'pageid': ajax_login_object.pageid
             },
             success: function(data){
-                setTimeout(function(){
-                    outputStatus('');
-                    $('form#login p.status').hide();
-                }, 2000);
                 $('.ajx-content').html(data.content);
-                //initialize stuff here
-                outputStatus('Page loaded');
-                window.dispatchEvent( new Event('ajx_page_load_success') );
+                outputStatus(ajax_login_object.page_loaded_message);
+                window.dispatchEvent( new Event('ajx_page_load') );
             },
             error: function(xhr, status, err){
-                outputStatus('Page load error');
+                outputStatus(ajax_login_object.page_load_error_message);
                 window.dispatchEvent( new Event('ajx_page_load_error') );
             }
         });
     }
 
+    var timer;
     function outputStatus(message) {
-        $('form#login p.status').text(message);
+        if(ajax_login_object.showmessages) {
+            clearTimeout(timer);
+            timer = setTimeout(function(){
+                $('form#login p.status').text("").hide();
+            }, 1700);
+            $('form#login p.status').show().text(message);
+        }
     } 
 });
